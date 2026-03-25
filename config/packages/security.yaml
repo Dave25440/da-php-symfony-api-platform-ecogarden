@@ -16,9 +16,17 @@ security:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
-        main:
-            lazy: true
-            provider: app_user_provider
+        auth:
+            pattern: ^/api/1.0/auth
+            stateless: true
+            json_login:
+                check_path: /api/1.0/auth
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        api:
+            pattern: ^/api
+            stateless: true
+            jwt: ~
 
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -28,8 +36,14 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/api/1.0$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/1.0/auth, roles: PUBLIC_ACCESS }
+        - { path: ^/api/1.0/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/1.0/tips$, methods: [POST], roles: ROLE_ADMIN }
+        - { path: ^/api/1.0/tips/\d+$, methods: [PUT, DELETE], roles: ROLE_ADMIN }
+        - { path: ^/api/1.0/users$, methods: [POST], roles: PUBLIC_ACCESS }
+        - { path: ^/api/1.0/users/\d+$, methods: [PUT, DELETE], roles: ROLE_ADMIN }
+        - { path: ^/api/1.0, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:
