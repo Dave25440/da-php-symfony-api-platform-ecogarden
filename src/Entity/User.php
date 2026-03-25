@@ -2,34 +2,60 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[ApiResource]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(name: 'id')]
+    #[Groups(['user_detail'])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
+    #[ORM\Column(name: 'email', length: 180)]
+    #[Groups(['user_detail'])]
+    #[Assert\NotBlank(message: 'L\'email est obligatoire.')]
+    #[Assert\Email(message: 'Le format de l\'email est invalide.')]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
-    #[ORM\Column]
+    #[ORM\Column(name: 'roles')]
+    #[Groups(['user_edit'])]
+    #[Assert\Choice(
+        choices: ['ROLE_USER', 'ROLE_ADMIN'],
+        multiple: true,
+        multipleMessage: 'Le rôle {{ value }} est invalide.'
+    )]
     private array $roles = [];
 
     /**
      * @var string The hashed password
      */
-    #[ORM\Column]
+    #[ORM\Column(name: 'password')]
+    #[Assert\NotBlank(message: 'Le mot de passe est obligatoire.')]
+    #[Assert\Length(min: 8, minMessage: 'Le mot de passe doit contenir au moins {{ limit }} caractères.')]
     private ?string $password = null;
+
+    #[ORM\Column(name: 'city', length: 255)]
+    #[Groups(['user_detail'])]
+    #[Assert\NotBlank(message: 'La ville est obligatoire.')]
+    #[Assert\Length(max: 255, maxMessage: 'La ville ne doit pas dépasser {{ limit }} caractères.')]
+    #[Assert\Regex(
+        pattern: '/^\D+$/',
+        message: 'La ville ne doit pas contenir de chiffres.'
+    )]
+    private ?string $city = null;
 
     public function getId(): ?int
     {
@@ -64,8 +90,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+
+        if (empty($roles)) {
+            $roles[] = 'ROLE_USER';
+        }
 
         return array_unique($roles);
     }
@@ -110,5 +138,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
         // @deprecated, to be removed when upgrading to Symfony 8
+    }
+
+    public function getCity(): ?string
+    {
+        return $this->city;
+    }
+
+    public function setCity(string $city): static
+    {
+        $this->city = $city;
+
+        return $this;
     }
 }
