@@ -2,7 +2,11 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\OpenApi\Model;
+use App\Controller\TipController;
 use App\Repository\TipRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,13 +16,55 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TipRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            name: 'tips_index',
+            uriTemplate: '/tips',
+            controller: TipController::class,
+            read: false,
+            paginationEnabled: false,
+            openapi: new Model\Operation(
+                summary: 'Liste les conseils du mois courant.',
+                description: 'Renvoie la liste des conseils de jardinage liés au mois courant.',
+                responses: [
+                    200 => new Model\Response(description: 'Liste des conseils de jardinage du mois courant')
+                ]
+            )
+        ),
+        new GetCollection(
+            name: 'tips_show',
+            uriTemplate: '/tips/{month}',
+            requirements: ['month' => '^(1[0-2]|[1-9])$'],
+            controller: TipController::class,
+            read: false,
+            paginationEnabled: false,
+            openapi: new Model\Operation(
+                summary: 'Récupère les conseils d\'un mois donné.',
+                description: 'Renvoie la liste des conseils de jardinage liés au mois spécifié en paramètre (de 1 à 12).',
+                parameters: [
+                    new Model\Parameter(
+                        name: 'month',
+                        in: 'path',
+                        description: 'Numéro du mois (1 à 12)',
+                        required: true,
+                        schema: ['type' => 'integer', 'minimum' => 1, 'maximum' => 12]
+                    )
+                ],
+                responses: [
+                    200 => new Model\Response(description: 'Liste des conseils de jardinage du mois spécifié')
+                ]
+            )
+        )
+    ]
+)]
 class Tip
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id')]
     #[Groups(['tip_list', 'tip_detail'])]
+    #[ApiProperty(identifier: false)]
     private ?int $id = null;
 
     #[ORM\Column(name: 'content', type: Types::TEXT)]
