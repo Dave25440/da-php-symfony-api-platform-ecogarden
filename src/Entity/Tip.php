@@ -16,7 +16,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TipRepository::class)]
 #[ApiResource(
-    shortName: 'Legacy Tip',
     operations: [
         new GetCollection(
             name: 'legacy_tips_index',
@@ -25,6 +24,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             read: false,
             paginationEnabled: false,
             openapi: new Model\Operation(
+                tags: ['Legacy Tip'],
                 summary: 'Liste les conseils du mois courant.',
                 description: 'Renvoie la liste des conseils de jardinage liés au mois courant.',
                 responses: [
@@ -41,6 +41,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             read: false,
             paginationEnabled: false,
             openapi: new Model\Operation(
+                tags: ['Legacy Tip'],
                 summary: 'Récupère les conseils d\'un mois donné.',
                 description: 'Renvoie la liste des conseils de jardinage liés au mois spécifié en paramètre (de 1 à 12).',
                 parameters: [
