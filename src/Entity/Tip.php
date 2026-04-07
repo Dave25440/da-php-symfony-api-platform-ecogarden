@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\OpenApi\Model;
@@ -17,10 +16,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TipRepository::class)]
 #[ApiResource(
+    shortName: 'Legacy Tip',
     operations: [
         new GetCollection(
-            name: 'tips_index',
-            uriTemplate: '/tips',
+            name: 'legacy_tips_index',
+            uriTemplate: '/legacy/tips',
             controller: TipController::class,
             read: false,
             paginationEnabled: false,
@@ -33,8 +33,9 @@ use Symfony\Component\Validator\Constraints as Assert;
             )
         ),
         new GetCollection(
-            name: 'tips_show',
-            uriTemplate: '/tips/{month}',
+            name: 'legacy_tips_show',
+            uriTemplate: '/legacy/tips/{month}',
+            uriVariables: ['month'],
             requirements: ['month' => '^(1[0-2]|[1-9])$'],
             controller: TipController::class,
             read: false,
@@ -64,7 +65,6 @@ class Tip
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id')]
     #[Groups(['tip_list', 'tip_detail'])]
-    #[ApiProperty(identifier: false)]
     private ?int $id = null;
 
     #[ORM\Column(name: 'content', type: Types::TEXT)]
